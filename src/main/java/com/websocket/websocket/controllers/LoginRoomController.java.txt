@@ -1,0 +1,25 @@
+package com.websocket.websocket.controllers;
+
+import com.websocket.websocket.services.DocRoomService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+@Slf4j
+public class LoginRoomController {
+
+    private final DocRoomService docRoomService;
+
+    @RequestMapping(value = "/check",method = RequestMethod.POST)
+    public void checkIfDocExists(@RequestParam String roomId) {
+
+        if (roomId.compareTo(docRoomService.findDoc(roomId)) == 0) {
+            log.info("document exists cannot create the same");
+
+
+        }
+    }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor Collaborative</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <!--script>
+        const randomUrl = generateRandomUrl();
+    </script-->
+</head>
+<body>
+
+
+<div id="textEditor" class="">
+    <h1>Edit Content</h1>
+
+    <div id="edit-content">
+        <textarea id="edit-area"  cols="50" rows="10">
+        </textarea>
+        <br>
+        <button type="submit" name="Save">Save</button>
+        <button type="submit" name="Open">Open</button>
+    </div>
+    <ul id="usersConnected">
+
+    </ul>
+    <div id="authentication" class="hidden">
+        <h2>User Authentication</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <p></p>
+            <button type="submit">Login</button>
+        </form>
+
+        <form id="disconnect-form" style="display: none;">
+            <button type="button" onclick="disconnectUser()">Disconnect</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+</body>
+</html>

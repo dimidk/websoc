@@ -1,0 +1,112 @@
+/*
+function userSessionName() {
+
+    let userSession = document.createElement('p')
+    let userSessionText = document.createTextNode('user ');
+    userSessionText = userSessionText + docUser.text;
+    userSession.appendChild(userSessionText);
+    docUrl.appendChild(userSession);
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Editor</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<div id="room-page">
+    <div class="room-page-container">
+        <h1 class="title">Type your document ID  to Sign in</h1>
+        <form id="roomForm" name="roomForm">
+            <div class="form-group">
+
+                <!--label for="name">User Name: </label>
+                <input type="text" name="name" id="name" /></p-->
+
+                <input type="text" id="docUser" placeholder="User" autocomplete="off" class="form-control" />
+
+                <input type="text" id="docId" placeholder="Document" autocomplete="off" class="form-control" />
+
+                <p><i>Give Room Id or press generate button to create one</i></p>
+                <button type="button" name="autoRoom" id="gen" onclick="generate()">Generate Room Id</button>
+                <input type="radio" name="ViewPrivilege" id="viewPrivilege">Only View</input>
+            </div>
+            <div class="form-group">
+
+                <button type="submit" id="create" class="accent room-submit">Create</button>
+                <button type="submit" id="sign-in" class="accent room-submit">Sign In</button>
+                <!--button type="submit" id="sign-in" class="accent room-submit">Sign in</button-->
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="textEditor" class="hidden">
+
+    <div class="chat-container">
+        <!--div-->
+        <h1>Edit Content</h1>
+
+        <div id="edit-content">
+            <textarea id="edit-area"  cols="50" rows="10">
+            </textarea>
+            <br>
+            <button type="submit" name="Save" id="save">Save</button>
+            <button type="submit" name="Open" id="open">Open</button>
+        </div>
+
+        <div>
+            <table>
+                <tr><td>
+                    <ul id="userSession"></ul>
+                </td></tr>
+                <tr>
+            <td><ul id="usersConnected" class="chat-container">
+            <!--ul id="usersConnected"-->
+
+            </ul>
+            </td>
+            <td><ul id = "comments">
+
+            </ul></td>
+                </tr>
+            </table>
+        </div>
+
+        <!--div class="left-side"-->
+
+    </div>
+    <div class="right-side">
+        <div id="authentication" class="hidden">
+            <h4>Share document with</h4>
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required><br><br>
+                <!--label for="password">Password:</label>
+                <input type="password" id="password" name="password" required-->
+                <p></p>
+                <button type="submit">Add</button>
+            </form>
+
+            <!--form id="disconnect-form" style="display: none;">
+                <button type="button" onclick="disconnectUser()">Disconnect</button>
+            </form-->
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+
+</body>
+</html>
