@@ -57,11 +57,17 @@
                     <div class="chat-message">
                         <div id="authentication" class="hidden">
                             <h4>Share document with</h4>
-                            <form id="login-form" post="http://localhost:8090/addShareUser">
-                                <label for="username">Username:</label>
-                                <input type="text" id="username" name="username" required>
-
-                                <button type="submit">Add</button>
+                            <!-- ="http://localhost:8090/editor/addShareUser"-->
+                            <form id="login-form" action="">
+                                <div>
+                                    <label for="username">Username:</label>
+                                    <input type="text" id="username" name="username" required>
+                                </div>
+                                <div>
+                                    <input type="radio" name="privilege" id="editUser" value="Edit"/>Edit
+                                    <input type="radio" name="privilege" id="viewUser" value="View"/>View
+                                </div>
+                                <button type="submit" id="btnSubmit">Add</button>
                             </form>
                         </div>
                     </div>

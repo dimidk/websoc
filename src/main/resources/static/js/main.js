@@ -13,7 +13,8 @@ var editor = document.querySelector("#edit-area");
 var openDoc = document.querySelector("#open");
 var saveDoc = document.querySelector("#save");
 var viewPriv = document.querySelector("#viewPrivilege");
-var addUser = document.querySelector("#authentication");
+//var addUser = document.querySelector("#authentication");
+var addUserForm = document.querySelector("#authentication");
 
 var usersCon = document.querySelector("#usersConnected");
 var comments = document.querySelector("#comments");
@@ -69,7 +70,7 @@ function connect(event) {
 
     roomPage.classList.add('hidden');
     docUrl.classList.remove('hidden');
-    addUser.classList.remove('hidden');
+    addUserForm.classList.remove('hidden');
 
     var socket = new SockJS('/ws');
     console.log("websocket established");
@@ -264,21 +265,41 @@ async function onMessageReceived(payload) {
 
 }
 
-async function addShareUser() {
+async function addShareUser(event,form) {
 
-    const sharedUserResponse = await fetch('/addShareUser');
-    let sharedUsers = await sharedUserResponse.json();
-    console.log("user added ",sharedUsers.name);
+    event.preventDefault();
+
+    let btnSubmit = document.querySelector("#btnSubmit");
+    btnSubmit.disabled = true;
 
 
-    // sharedUsers = sharedUsers.filter(user => user.name !== user.text);
-    // //const connectedUsersList = document.getElementById('connectedUsers');
-    // usersCon.innerHTML = '';
-    // //connectedUsersList.innerHTML = '';
-    // let li = document.createElement('p');
-    // let textEl = document.createTextNode("Connected Users");
-    // li.appendChild(textEl);
-    // usersCon.appendChild(li);
+    let data = document.querySelector("#username");
+    console.log("data form:",data.value.trim());
+
+    let viewUser = document.querySelector("#viewUser");
+    let editUser = document.querySelector("#editUser");
+    let role = null;
+
+    if (viewUser.checked) {
+        role = 'VIEW';
+    }
+    if (editUser.checked) {
+        role = 'EDIT';
+    }
+
+    let userResultJson = await fetch('http://localhost:8090/editor/addShareUser', {
+        method: 'POST',
+        body: JSON.stringify({'name': data.value.trim(),
+                                    'role': role}),
+        headers:{
+            'Content-Type': 'application/json'
+        }
+    });
+    let userResult = await userResultJson.json();
+    console.log(userResult);
+    if (!userResultJson) {
+        alert("An error occured!");
+    }
 }
 
 function openDocument(event) {
@@ -316,7 +337,7 @@ function saveDocument(event) {
 roomPage.addEventListener('submit',connect,true);
 //roomPage.addEventListener('submit',connectTwo,true);
 //roomPage.addEventListener('submit',createDoc,true);
-//addUser.addEventListener('submit',addShareUser,true);
+addUserForm.addEventListener('submit',addShareUser,true);
 
 
 editor.addEventListener('input',writeToEditor,true);

@@ -182,4 +182,9 @@ public class EditorService  {
             userService.updateUser(message.getSenderId(), TypeMessage.LEAVE);
         }
     }
+
+    public Role getUserRole(String role) {
+
+        return userService.getRole(role);
+    }
 }

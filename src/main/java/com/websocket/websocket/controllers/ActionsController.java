@@ -13,10 +13,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.print.Doc;
 import java.io.*;
@@ -68,20 +65,27 @@ public class ActionsController {
         return ResponseEntity.ok(userService.findAllConnectedUsers());
     }
 
-    @GetMapping("/addShareUser")
-    public ResponseEntity<User> addShareUser(@RequestParam String username) {
+    @PostMapping("/editor/addShareUser")
+    public ResponseEntity<User> addShareUser(@RequestBody User shareUser) {
 
-        log.info("addShareUser request: {}", username);
+        User shareUserNew = null;
 
-        User shareUser = User.builder()
-                .name(username)
-                .status(TypeMessage.JOIN)
-                .role(Role.EDIT)
-                .build();
+        if (shareUser == null) {
+            throw new IllegalArgumentException("no user added");
+        }
 
-        userService.addNew(shareUser);
+        if (!userService.exists(shareUser)) {
 
-        return ResponseEntity.ok(shareUser);
+            shareUserNew = User.builder()
+                    .name(shareUser.getName())
+                    .status(TypeMessage.JOIN)
+                    .role(shareUser.getRole())
+                    .build();
+
+            userService.addNew(shareUserNew);
+        }
+
+        return ResponseEntity.ok(shareUserNew);
 
     }
 
