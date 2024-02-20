@@ -109,6 +109,7 @@ public class EditorService  {
         return u;
 
     }
+
 //this is checkDoc if a user can access document edit/view. if there is no user in the shared list
     //user cannot access the document and a corresponding message will be alerted
     public boolean checkDocUser(Message message) {
@@ -162,9 +163,6 @@ public class EditorService  {
 
             List<User> share = docRoom.getShareUser();
             log.info("addShareUserInDoc method: share List is empty: {}",share.isEmpty());
-            //docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty();
-
-//            this is an error don't use right the Optional
 
             if (share.isEmpty() || docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty()) {
                 log.info("addShareUserInDoc method: either list empty or user not exist in list {}",userToAdd.getName());

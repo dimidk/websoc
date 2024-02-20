@@ -91,15 +91,13 @@ public class DocRoomService {
 
         String owner = docRoom.getOwnerUser().getName();
         String userOwnerName = userOwner.getName();
-
-        boolean a = owner.compareTo(userOwnerName) == 0;
-        log.info("owner and given owner is same {}",a);
-
-        log.info("owner and given owner by repository {} ",docRoomRepository.existsByDocIdAndOwnerUser(docId,userOwner));
-
-//        return docRoomRepository.existsByDocIdAndOwnerUser(docId,userOwner);
-
-        return a;
+//
+//        boolean a = owner.compareTo(userOwnerName) == 0;
+//        log.info("owner and given owner is same {}",a);
+//
+//        log.info("owner and given owner by repository {} ",docRoomRepository.existsByDocIdAndOwnerUser(docId,userOwner));
+//
+        return owner.compareTo(userOwnerName) == 0;
     }
 
     public Optional<User> findViewUser(String docId,User viewUser) {
