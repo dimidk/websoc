@@ -1,23 +1,14 @@
 package com.websocket.websocket.services;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.websocket.websocket.actions.EditActions;
 import com.websocket.websocket.model.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-
-import static java.lang.System.err;
-import static java.lang.System.exit;
 
 @Service
 @AllArgsConstructor
@@ -118,32 +109,83 @@ public class EditorService  {
         return u;
 
     }
+//this is checkDoc if a user can access document edit/view. if there is no user in the shared list
+    //user cannot access the document and a corresponding message will be alerted
+    public boolean checkDocUser(Message message) {
 
-    public void checkDocUser(Message message) {
-
-        List<User> shared = null;
         Optional<User> userFind = null;
+        boolean access = true;
 
         if (message == null) {
             throw new IllegalArgumentException("noe message");
         }
 
         DocRoom docRoom = docRoomService.getDocRoom(message.getDocId());
-        shared = docRoom.getShareUser();
         User user = userService.findUser(message.getSenderId());
-        userFind = docRoomService.findShareUser(message.getDocId(), user.getName());
-        if ((shared.isEmpty() && !findOwner(docRoom.getDocId(),user.getName())) ||
-            userFind.isEmpty()) {
+        userFind = docRoomService.findShareUser(message.getDocId(), message.getSenderId());
+        if (!docRoomService.findOwnerDoc(message.getDocId(), user) && userFind.isEmpty()) {
 
-            log.info("checkDocUser method: user share no exist and not owner");
-            shared = docRoom.getShareUser();
-            shared.add(user);
-            docRoomService.addDoc(docRoom);
-            //throw new IllegalArgumentException("there is new created doc with no share users");
+            log.info("don't have privilege to access document");
+            access = false;
         }
 
+        return access;
+    }
+
+    private void addNewUser(User name) {
+
+        if (name == null) {
+            throw new IllegalArgumentException("null object");
+        }
+
+        try {
+            if (!userService.exists(name)) {
+
+                userService.addNew(name);
+            }
+        }catch (Exception e) {
+            log.info("cannot add same user: {}",e.getMessage());
+        }
+    }
+
+
+    public Optional<User> addShareUserInDoc(String docId, String owner, User userToAdd) {
+
+        User user= null;
+        boolean a = false;
+
+        DocRoom docRoom = docRoomService.getDocRoom(docId);
+
+        if (owner.compareTo(docRoom.getOwnerUser().getName()) == 0) {
+
+            log.info("addShareUserInDoc method: owner document {} and user session is {} ",docRoom.getOwnerUser().getName(),owner);
+
+            List<User> share = docRoom.getShareUser();
+            log.info("addShareUserInDoc method: share List is empty: {}",share.isEmpty());
+            //docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty();
+
+//            this is an error don't use right the Optional
+
+            if (share.isEmpty() || docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty()) {
+                log.info("addShareUserInDoc method: either list empty or user not exist in list {}",userToAdd.getName());
+                docRoomService.updateShareUserList(docId,userToAdd);
+                addNewUser(userToAdd);
+                user = userToAdd;
+                a = true;
+            }
+        }
+        else {
+            log.info("You don't have right to add user to the document");
+        }
+
+        if (a) {
+            return Optional.of(user);
+        } else {
+            return Optional.empty();
+        }
 
     }
+
 
     public void userLoginUpdate(Message message, Role roleType) {
 
@@ -179,12 +221,21 @@ public class EditorService  {
         }
 
         if (message.getType() == TypeMessage.LEAVE) {
+
+            User user = userService.findUser(message.getSenderId());
+            log.info("user in db {}",user.getName());
+            log.info("userDisconnectUpdate: {}",message.getSenderId());
+            log.info("userDisconnectUpdate: {}",docRoomService.findViewUser(message.getDocId(), user).isEmpty());
+            if (!docRoomService.findViewUser(message.getDocId(), user).isEmpty()) {
+
+                log.info("userDisconnectUpdate: before msg{}",message.getText());
+
+                message.setText(docRoomService.getContentDocId(message.getDocId()));
+
+                log.info("userDisconnectUpdate: after msg {}",message.getText());
+            }
             userService.updateUser(message.getSenderId(), TypeMessage.LEAVE);
         }
     }
 
-    public Role getUserRole(String role) {
-
-        return userService.getRole(role);
-    }
 }

@@ -1,32 +1,32 @@
 'use strict';
 
-var roomPage = document.querySelector("#room-page");
-var createDoc = document.getElementById("create");
-var signInDoc = document.getElementById("sign-in");
+var roomPage_index = document.querySelector("#room-page");
+ var roomPage = document.querySelector("#roomForm");
+
+// var createDoc = document.getElementById("create");
+// var signInDoc = document.getElementById("sign-in");
 var docName = document.querySelector("#docId");
 var docUser = document.querySelector("#docUser");
 
 var userSession = document.querySelector("#userSession");
+// var createBtn = document.querySelector("#create");
+// var signInBtn = document.querySelector("#sign-in");
 
 var docUrl = document.querySelector("#textEditor");
 var editor = document.querySelector("#edit-area");
-var openDoc = document.querySelector("#open");
 var saveDoc = document.querySelector("#save");
 var viewPriv = document.querySelector("#viewPrivilege");
-//var addUser = document.querySelector("#authentication");
 var addUserForm = document.querySelector("#authentication");
 
 var usersCon = document.querySelector("#usersConnected");
 var comments = document.querySelector("#comments");
 
 var stompClient = null;
-//var docId = "test-room";
 var docId = docName.value.trim();
-//var user = docUser.value.trim();
 var user = docUser.value.trim();
 var textContent = null;
 var previousTextArea = null;
-//const usersConnected = [];
+var whichBtn = null;
 
 
 function generate() {
@@ -57,18 +57,25 @@ var colors = [
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
 ];
 
-function generateRandomUrl() {
-    // This is a simple example; you may want to use a more robust method
-    const randomId = Math.random().toString(36).substring(2, 10);
-    return randomId;
-}
-
 function connect(event) {
+
+    var submitBtn = event.submitter;
+
+    console.log("submit button event ",submitBtn.getAttribute('id'));
+
+    if (submitBtn.value === "create") {
+
+        whichBtn = "create";
+    }
+    else {
+        whichBtn = "signIn";
+    }
 
     console.log("docId given",docId);
     console.log("doc user given",docUser.value.trim());
-
-    roomPage.classList.add('hidden');
+    console.log("submit button pressed ",whichBtn);
+    roomPage_index.classList.add('hidden');
+    //roomPage.classList.add('hidden');
     docUrl.classList.remove('hidden');
     addUserForm.classList.remove('hidden');
 
@@ -90,25 +97,36 @@ function onConnected() {
     stompClient.subscribe('/topic/public', onMessageReceived);
     if (viewPriv.checked) {
 
-
         console.log("View radio is checked");
+
         stompClient.send('/app/controllers.subscribeToView',
             {},
-            //JSON.stringify({senderId: user.value.trim(), type: 'JOIN'})
             JSON.stringify({senderId: docUser.value.trim(), type: 'JOIN', text: "", docId: docName.value.trim()})
         );
+        userSessionName('viewer '+docUser.value.trim());
+
     } else {
+        if (whichBtn === "create") {
 
+            stompClient.send('/app/controllers.docRoomUser',
+                {},
+                JSON.stringify({senderId: docUser.value.trim(), type: 'JOIN', text: "", docId: docName.value.trim()})
+            );
 
-        stompClient.send('/app/controllers.docRoomUser',
-            {},
-            //JSON.stringify({senderId: user.value.trim(), type: 'JOIN'})
-            JSON.stringify({senderId: docUser.value.trim(), type: 'JOIN', text: "", docId: docName.value.trim()})
-        );
+            userSessionName('owner '+docUser.value.trim());
 
+        }
+        else if (whichBtn === "signIn") {
+
+            stompClient.send('/app/controllers.signInRoomUser',
+                {},
+                JSON.stringify({senderId: docUser.value.trim(), type: 'JOIN', text: "", docId: docName.value.trim()})
+            );
+            userSessionName('editing '+docUser.value.trim());
+        }
     }
 
-    userSessionName(docUser.value.trim());
+    // userSessionName(docUser.value.trim());
 
     findAndDisplayConnected().then();
 
@@ -119,15 +137,16 @@ async function findAndDisplayConnected() {
     const connectedUserResponse = await fetch('/users');
     let connectedUsers = await connectedUserResponse.json();
     connectedUsers = connectedUsers.filter(user => user.name !== user.text);
-    //const connectedUsersList = document.getElementById('connectedUsers');
+
     usersCon.innerHTML = '';
-    //connectedUsersList.innerHTML = '';
+
     let li = document.createElement('p');
     let textEl = document.createTextNode("Connected Users");
     li.appendChild(textEl);
     usersCon.appendChild(li);
 
     connectedUsers.forEach(user => {
+
         console.log("connected user ",user.name);
         let li = document.createElement('li')
         li.setAttribute('id','li'+user.name);
@@ -135,9 +154,15 @@ async function findAndDisplayConnected() {
         let btn = document.createElement('button');
         btn.setAttribute('type','button');
         btn.setAttribute('id',user.name);
+        btn.classList.add('default');
+        btn.style['background-color'] = getAvatarColor(user.name);
+
+        btn.innerText = user.name[0].toUpperCase();
 
         btn.addEventListener('click',userDisconnection);
-        let textLi = document.createTextNode(user.name + ' joined');
+
+        let textLi = document.createTextNode(' '+user.name );
+
         span.appendChild(btn);
         span.appendChild(textLi);
         li.appendChild(span);
@@ -159,13 +184,10 @@ function userDisconnection(event) {
 
     usersCon.removeChild(deletedElement);
 
-    //now must correct the message problem
     var msg = {
-        //senderId: user.value.trim(),
         senderId: selectedUser,
         docId: docName.value.trim(),
-        text: textContent,
-        //text: '',
+        text: editor.value,
         type: 'LEAVE'
     }
 
@@ -199,6 +221,7 @@ function userSessionName(name) {
     console.log("try to write user session");
 
     let userSessionN = document.createElement('i')
+
     let userSessionText = document.createTextNode(' ' + name);
     userSessionN.appendChild(userSessionText);
     userSession.appendChild(userSessionN);
@@ -214,15 +237,10 @@ function onError() {
 
 function writeToEditor(event) {
 
-    //let previous = editor.content;
-
     textContent = editor.value;
-
-    //previousTextArea =  textContent;
 
     if (textContent && stompClient) {
         var editorMessage = {
-            //senderId: user.value.trim(),
             senderId: docUser.value.trim(),
             docId: docName.value.trim(),
             text: textContent,
@@ -236,9 +254,6 @@ function writeToEditor(event) {
         }
 
     }
-
-    //console.log(previousTextArea)
-
     event.preventDefault();
 }
 
@@ -260,9 +275,6 @@ async function onMessageReceived(payload) {
     //editor.value = previousTextArea;
     editor.scrollTop = editor.scrollHeight;
 
-    //editor.value = previous + message.text;
-
-
 }
 
 async function addShareUser(event,form) {
@@ -270,80 +282,80 @@ async function addShareUser(event,form) {
     event.preventDefault();
 
     let btnSubmit = document.querySelector("#btnSubmit");
-    btnSubmit.disabled = true;
-
+    btnSubmit.disabled = false;
 
     let data = document.querySelector("#username");
-    console.log("data form:",data.value.trim());
+    console.log("data form: user to add ",data.value.trim());
+    console.log("data form: user session ",docUser.value.trim());
+    console.log("data form: docId ",docName.value.trim());
 
     let viewUser = document.querySelector("#viewUser");
     let editUser = document.querySelector("#editUser");
-    let role = null;
+    var role = null;
 
     if (viewUser.checked) {
+        console.log("view User checked");
         role = 'VIEW';
     }
     if (editUser.checked) {
-        role = 'EDIT';
+
+        role = "EDIT";
+        console.log("edit User checked",role);
     }
 
-    let userResultJson = await fetch('http://localhost:8090/editor/addShareUser', {
-        method: 'POST',
-        body: JSON.stringify({'name': data.value.trim(),
-                                    'role': role}),
-        headers:{
-            'Content-Type': 'application/json'
-        }
-    });
+    console.log("data form: role ",role);
+
+    let ownerUser = docUser.value.trim();
+    let docIdName = docName.value.trim();
+    let userResultJson = await fetch(`http://localhost:8090/editor/addShareUser/${docIdName}/${ownerUser}`, {
+            method: 'POST',
+            body: JSON.stringify({name: data.value.trim(),
+                                        status: "JOIN",
+                                        role: role
+                                        }),
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        });
+
     let userResult = await userResultJson.json();
     console.log(userResult);
-    if (!userResultJson) {
-        alert("An error occured!");
+    if (!userResult) {
+        data.value = '';
+        viewUser.checked = false;
+        editUser.checked = false;
+        alert("You don't have rights to add user to document! You are NOT the owner");
+    }
+    else {
+        data.value = '';
+        viewUser.checked = false;
+        editUser.checked = false;
+        alert('user '+data.value.trim()+' added')
     }
 }
 
-function openDocument(event) {
-
- //   editor.value = text;
-
-    if (stompClient) {
-        var editorMessage = {
-            //senderId: user.value.trim(),
-            senderId: docUser.value.trim(),
-            docId: docName.value.trim(),
-            type: 'TEXT'
-        }
-
-        stompClient.send('/app/controllers.openDoc',{},
-            JSON.stringify(editorMessage));
-
-    }
-}
-
-function saveDocument(event) {
+ function saveDocument(event) {
 
     var clicked = event.target;
     var clickedBtn = clicked.getAttribute('id');
 
     console.log("name of clicked button",clickedBtn);
     const response =  fetch('/save/'+docName.value.trim() + '/' + docUser.value.trim());
-    if (response === '200') {
+    // let responseJSON = await response.json();
+
+    if ("200" === (response).text()) {
         console.log("doc saved");
+        alert("document saved locally!")
     }
-    else {console.log("errorrr!!!");}
+    else { console.log("errorrr!!!");
+            alert("cannot save file!")}
 
 }
 
 roomPage.addEventListener('submit',connect,true);
-//roomPage.addEventListener('submit',connectTwo,true);
-//roomPage.addEventListener('submit',createDoc,true);
 addUserForm.addEventListener('submit',addShareUser,true);
 
 
 editor.addEventListener('input',writeToEditor,true);
-openDoc.addEventListener('submit',openDocument,true);
 saveDoc.addEventListener('click',saveDocument,true);
 
-
-
-//editor.addEventListener('mouseout',onMessageReceived,true);

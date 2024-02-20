@@ -17,18 +17,8 @@ public interface DocRoomRepository extends MongoRepository<DocRoom,String> {
 
     public DocRoom findByDocId(String docId);
 
-    public  User findByDocIdAndShareUserContains(String docId, List<User> shareUser);
-
-    public String findByDocIdAndContent(String docId,String content);
-
-
-
-
-    public List<DocRoom> streamDocRoomByDocIdAndShareUser(String docId, List<User> shareUser);
-    public void streamDocRoomByDocId(String docId);
-    public void streamDocRoomByDocIdAndContent(String docId, String content);
+    public User findByDocIdAndOwnerUser(String docId, User ownerUser);
 
     public boolean existsByDocId(String docId);
-
-    //public List<User> getSharedUsers(String docId);
+    public boolean existsByDocIdAndOwnerUser(String docId, User ownerUser);
 }

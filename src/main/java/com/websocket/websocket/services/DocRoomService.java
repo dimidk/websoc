@@ -4,6 +4,7 @@ import com.mongodb.MongoChangeStreamException;
 import com.mongodb.client.internal.MongoChangeStreamCursorImpl;
 import com.websocket.websocket.actions.EditActions;
 import com.websocket.websocket.model.DocRoom;
+import com.websocket.websocket.model.Role;
 import com.websocket.websocket.model.TypeMessage;
 import com.websocket.websocket.model.User;
 import com.websocket.websocket.repository.DocRoomRepository;
@@ -84,6 +85,47 @@ public class DocRoomService {
         docRoomRepository.save(docRoom);
     }
 
+    public boolean findOwnerDoc(String docId,User userOwner) {
+
+        DocRoom docRoom = docRoomRepository.findByDocId(docId);
+
+        String owner = docRoom.getOwnerUser().getName();
+        String userOwnerName = userOwner.getName();
+
+        boolean a = owner.compareTo(userOwnerName) == 0;
+        log.info("owner and given owner is same {}",a);
+
+        log.info("owner and given owner by repository {} ",docRoomRepository.existsByDocIdAndOwnerUser(docId,userOwner));
+
+//        return docRoomRepository.existsByDocIdAndOwnerUser(docId,userOwner);
+
+        return a;
+    }
+
+    public Optional<User> findViewUser(String docId,User viewUser) {
+
+        boolean a = false;
+
+        DocRoom docRoom = docRoomRepository.findByDocId(docId);
+        List<User> sharedUsers = getSharedUsers(docId);
+        Iterator<User> it = sharedUsers.iterator();
+        while (it.hasNext()) {
+
+            User temp = it.next();
+            log.info("roomService: findViewUser: user exists in shareList: {}",temp.getName());
+            if (temp.getName().compareTo(viewUser.getName()) == 0 && temp.getRole() == Role.VIEW) {
+                a = true;
+                break;
+            }
+        }
+
+        if (a) {
+            return Optional.of(viewUser);
+        } else {
+            return Optional.empty();
+        }
+
+    }
     public String getContentDocId(String docId) {
 
         if (docId == null) {
@@ -103,11 +145,7 @@ public class DocRoomService {
 
     public List<User> getSharedUsers(String docId) {
 
-        //List<User> shared = null;
-
         DocRoom docRoom = docRoomRepository.findByDocId(docId);
-
-
         return docRoom.getShareUser();
 
     }
@@ -149,6 +187,24 @@ public class DocRoomService {
             return Optional.of(temp);
 
         else return Optional.empty();
+    }
+
+    public void updateShareUserList(String docId,User name) {
+
+        if (docId == null) {
+            throw new IllegalArgumentException("no document id");
+
+        }
+        if (name == null) {
+            throw new IllegalArgumentException("no document id");
+
+        }
+
+        DocRoom docRoom = docRoomRepository.findByDocId(docId);
+        List<User> shared = docRoom.getShareUser();
+        shared.add(name);
+        docRoom.setShareUser(shared);
+        docRoomRepository.save(docRoom);
     }
 
     public void updateDocument(String docId, String msg) {

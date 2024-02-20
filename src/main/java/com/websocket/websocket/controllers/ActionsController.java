@@ -6,8 +6,12 @@ import com.websocket.websocket.services.DocRoomService;
 
 import com.websocket.websocket.services.EditorService;
 import com.websocket.websocket.services.UserService;
+import com.websocket.websocket.services.ValidationDocUser;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.print.Doc;
 import java.io.*;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +33,7 @@ public class ActionsController {
 
     private UserService userService;
     private EditorService editorService;
+    private ValidationDocUser validationDocUser;
 
     @GetMapping("/save/{docId}/{userId}")
     public ResponseEntity<String> saveDoc(@PathVariable String docId,@PathVariable String userId) throws IOException {
@@ -38,21 +44,23 @@ public class ActionsController {
         log.info("this is content from client {}",temp);
 
         editorService.saveDocToDb(docId,Editor.textArea);
-        Optional<User> user = editorService.getShareUser(docId,userId);
 
-        if (user.isEmpty()) {
-            log.info("cannot save file without name");
-            return ResponseEntity.ok("Null user");
-        }
-        else {
-            log.info("ActionsController get user to save file {}", user.get().getName());
-            FileWriter fpWrite = new FileWriter(user.get().getName() + "_" + docId + ".txt");
+        if (validationDocUser.userExist(userId)) {
+
+            log.info("actionController method: user {}",userId);
+            FileWriter fpWrite = new FileWriter(userId + "_" + docId + ".txt");
             fpWrite.write(temp);
             fpWrite.flush();
             fpWrite.close();
+
+            return ResponseEntity.ok("200");
+        }
+        else {
+            log.info("cannot save file to no user");
+            return ResponseEntity.ok("-200");
         }
 
-        return ResponseEntity.ok("200");
+//        return ResponseEntity.ok("200");
 
     }
 
@@ -65,30 +73,16 @@ public class ActionsController {
         return ResponseEntity.ok(userService.findAllConnectedUsers());
     }
 
-    @PostMapping("/editor/addShareUser")
-    public ResponseEntity<User> addShareUser(@RequestBody User shareUser) {
+    @PostMapping("/editor/addShareUser/{docId}/{owner}")
+//    public ResponseEntity<User> addShareUser(
+//                                             @RequestBody DocRoom addShareUserInDoc) {
+    public ResponseEntity<Optional<User>> addShareUser(@PathVariable String docId, @PathVariable String owner,
+                                            @RequestBody User addShareUserInDoc) {
 
-        User shareUserNew = null;
 
-        if (shareUser == null) {
-            throw new IllegalArgumentException("no user added");
-        }
-
-        if (!userService.exists(shareUser)) {
-
-            shareUserNew = User.builder()
-                    .name(shareUser.getName())
-                    .status(TypeMessage.JOIN)
-                    .role(shareUser.getRole())
-                    .build();
-
-            userService.addNew(shareUserNew);
-        }
-
-        return ResponseEntity.ok(shareUserNew);
-
+        Optional<User> user = editorService.addShareUserInDoc(docId,owner,addShareUserInDoc);
+//        return ResponseEntity.ok(addShareUserInDoc);
+        return ResponseEntity.of(Optional.ofNullable(user));
     }
-
-
 
 }

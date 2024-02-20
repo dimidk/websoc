@@ -69,30 +69,10 @@ public class UserService {
         }
 
         User user = findUser(name);
-        //log.info("user info");
-        //log.info("user with {} {}",user.getName(),user.getStatus());
-        //log.info("update user");
-
         user.setStatus(status);
-
         userRepository.save(user);
     }
 
-    public Role getRole(String role) {
-
-        Role userRole = null;
-
-        if (role.compareTo("EDIT") == 0) {
-            userRole = Role.EDIT;
-        }
-        if (role.compareTo("VIEW") == 0) {
-            userRole = Role.VIEW;
-        }
-        if (role.compareTo("IDLE") == 0 ) {
-            userRole = Role.IDLE;
-        }
-        return userRole;
-    }
 
     public Role getRole(User user) {
 
