@@ -151,7 +151,7 @@ public class DocRoomService {
     public Optional<User> findShareUser(String docId,String name) {
 
         User temp = null;
-        boolean a = false;
+        User user = null;
 
         if (docId == null) {
             throw new IllegalArgumentException("no document id");
@@ -162,7 +162,6 @@ public class DocRoomService {
 
         }
 
-
         log.info("roomService: find if user exists in share list");
         List<User> share = docRoomRepository.findByDocId(docId).getShareUser();
         log.info("share list is empty: {}",share.isEmpty());
@@ -171,20 +170,15 @@ public class DocRoomService {
             Iterator<User> it = share.iterator();
             while (it.hasNext()) {
                 temp = it.next();
-                //log.info("roomService: if user in share list {}",user.getName());
                 if (temp.getName().compareTo(name) == 0) {
                     log.info("roomService: user exists in share list");
-                    a = true;
-                    //temp = it.next();
+                    user = temp;
                     break;
                 }
-
             }
         }
-        if (a)
-            return Optional.of(temp);
 
-        else return Optional.empty();
+        return Optional.ofNullable(user);
     }
 
     public void updateShareUserList(String docId,User name) {

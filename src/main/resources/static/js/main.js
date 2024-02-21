@@ -334,21 +334,21 @@ async function addShareUser(event,form) {
     }
 }
 
- function saveDocument(event) {
+ async function saveDocument(event) {
 
     var clicked = event.target;
     var clickedBtn = clicked.getAttribute('id');
 
     console.log("name of clicked button",clickedBtn);
-    const response =  fetch('/save/'+docName.value.trim() + '/' + docUser.value.trim());
-    // let responseJSON = await response.json();
+    const response =  await fetch('/save/'+docName.value.trim() + '/' + docUser.value.trim());
+    let replyText =await  response.text();
 
-    if ("200" === (response).text()) {
+    if ("200" === replyText) {
         console.log("doc saved");
         alert("document saved locally!")
     }
     else { console.log("errorrr!!!");
-            alert("cannot save file!")}
+            alert("cannot save file...")}
 
 }
 

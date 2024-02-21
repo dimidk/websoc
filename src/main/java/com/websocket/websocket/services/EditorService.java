@@ -19,7 +19,6 @@ public class EditorService  {
     private final DocRoomService docRoomService;
     private final UserService userService;
 
-    //public void saveDocToDb(Message message) {
     public void saveDocToDb(String docId,String context) {
 
         DocRoom docRoom;
@@ -110,8 +109,6 @@ public class EditorService  {
 
     }
 
-//this is checkDoc if a user can access document edit/view. if there is no user in the shared list
-    //user cannot access the document and a corresponding message will be alerted
     public boolean checkDocUser(Message message) {
 
         Optional<User> userFind = null;
@@ -153,7 +150,6 @@ public class EditorService  {
     public Optional<User> addShareUserInDoc(String docId, String owner, User userToAdd) {
 
         User user= null;
-        boolean a = false;
 
         DocRoom docRoom = docRoomService.getDocRoom(docId);
 
@@ -161,26 +157,18 @@ public class EditorService  {
 
             log.info("addShareUserInDoc method: owner document {} and user session is {} ",docRoom.getOwnerUser().getName(),owner);
 
-            List<User> share = docRoom.getShareUser();
-            log.info("addShareUserInDoc method: share List is empty: {}",share.isEmpty());
-
-            if (share.isEmpty() || docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty()) {
-                log.info("addShareUserInDoc method: either list empty or user not exist in list {}",userToAdd.getName());
+            if (docRoomService.findShareUser(docId,userToAdd.getName()).isEmpty()) {
+                log.info("addShareUserInDoc method: either list empty or user not exist in list {}", userToAdd.getName());
                 docRoomService.updateShareUserList(docId,userToAdd);
                 addNewUser(userToAdd);
                 user = userToAdd;
-                a = true;
             }
         }
         else {
             log.info("You don't have right to add user to the document");
         }
 
-        if (a) {
-            return Optional.of(user);
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(user);
 
     }
 
